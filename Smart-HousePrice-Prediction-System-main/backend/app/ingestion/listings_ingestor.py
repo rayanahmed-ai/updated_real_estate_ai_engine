@@ -129,7 +129,13 @@ def fetch_listings(lat: float, lon: float, limit: int = 5,
     Filters by bhk and max_price if provided.
     """
     url      = _build_magicbricks_url(area_name, city)
-    listings = _scrape_magicbricks(url, [], limit=limit * 5)  # fetch more to allow filtering
+    listings = _scrape_magicbricks(url, [], limit=limit * 5)
+
+    # Fallback: If area search fails, try city-only search
+    if not listings and area_name:
+        print(f"[MagicBricks] No listings for '{area_name}', falling back to city-wide search for '{city}'")
+        url = _build_magicbricks_url("", city)
+        listings = _scrape_magicbricks(url, [], limit=limit * 5)
 
     for l in listings:
         if l["lat"] is None and lat is not None:

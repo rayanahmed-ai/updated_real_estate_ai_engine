@@ -116,7 +116,8 @@ class UnlimitedFeaturesAgent:
         signals = {}
 
         for f in features:
-            f = f.lower()
+            # Handle both strings and dictionaries from AI
+            f = str(f).lower()
 
             if "hospital" in f or "health" in f or "medical" in f:
                 signals["hospitals"] = signals.get("hospitals", 0) + 1.0
