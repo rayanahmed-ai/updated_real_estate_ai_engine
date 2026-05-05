@@ -9,7 +9,10 @@ def on_startup():
     - DB init
     - Scheduler start
     """
-    print("🚀 Application started")
-    # Create database tables
-    Base.metadata.create_all(bind=engine)
-    print("📊 Database tables created/verified")
+    print("🚀 Application starting...")
+    try:
+        # checkfirst=True is default, but we wrap in try/except for extra safety with multiple workers
+        Base.metadata.create_all(bind=engine, checkfirst=True)
+        print("📊 Database tables verified")
+    except Exception as e:
+        print(f"⚠️ Database initialization skipped (likely already exists): {e}")
