@@ -1,5 +1,10 @@
 // Backend API configuration
-const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+// In production, we use the same domain with /api prefix
+const API_BASE = import.meta.env.VITE_API_BASE 
+  ? (import.meta.env.VITE_API_BASE.endsWith('/api') ? import.meta.env.VITE_API_BASE : `${import.meta.env.VITE_API_BASE}/api`)
+  : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
+      ? "http://127.0.0.1:8000/api" 
+      : "/api");
 
 /**
  * Parse free-form user text input into structured JSON

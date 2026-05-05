@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Header from './Header'
 import SearchPanel from './SearchPanel'
 import ResultsPanel from './ResultsPanel'
-import { recommendHouses, searchFromText } from '../api'
+import { parseUserInput, searchHouses } from '../api'
 import './SearchPage.css'
 
 const STATES = ['Andhra Pradesh', 'Delhi', 'Gujarat', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Punjab', 'Rajasthan', 'Tamil Nadu', 'Telangana', 'Uttar Pradesh', 'West Bengal']
@@ -42,75 +42,40 @@ export default function SearchPage() {
       let payload
 
       if (uiMode === 'prompt') {
-        // Prompt mode: use Groq to parse free-form input
         if (!promptInput.trim()) {
           setError('Please enter a search query')
           setLoading(false)
           return
         }
-
-        // Parse user query using Groq LLM
-        const parseResponse = await fetch(`${import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000'}/parse`, {
-          method: "POST",
-          mode: "cors",
-          credentials: "omit",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: promptInput })
-        })
-
-        if (!parseResponse.ok) {
-          throw new Error(`Parse failed: ${parseResponse.status}`)
-        }
-
-        payload = await parseResponse.json()
+        // Use helper from api.js
+        payload = await parseUserInput(promptInput)
       } else {
-        // Form mode: build payload directly from form
         if (!state || !city) {
           setError('Please select state and city')
           setLoading(false)
           return
         }
 
-        // Map profile to features
         const profileFeatures = {
           'cheap_but_safe': ['affordable', 'safe', 'near schools'],
           'balanced': ['near parks', 'near schools', 'near hospitals'],
           'premium': ['near parks', 'near schools', 'near hospitals', 'premium']
         }
 
-        // Use /parse to geocode the city+state via Google Maps
-        const parseResponse = await fetch(`${import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000'}/parse`, {
-          method: "POST",
-          mode: "cors",
-          credentials: "omit",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: `${profileFeatures[profile].join(', ')} in ${city}, ${state}` })
-        })
-
-        if (!parseResponse.ok) throw new Error(`Parse failed: ${parseResponse.status}`)
-        payload = await parseResponse.json()
+        // Use helper from api.js to geocode and parse
+        payload = await parseUserInput(`${profileFeatures[profile].join(', ')} in ${city}, ${state}`)
       }
 
-      // Search using payload
-      const searchResponse = await fetch(`${import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000'}/search`, {
-        method: "POST",
-        mode: "cors",
-        credentials: "omit",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      })
-
-      if (!searchResponse.ok) {
-        throw new Error(`Search failed: ${searchResponse.status}`)
-      }
-
-      const data = await searchResponse.json()
+      // Use helper from api.js to search
+      const data = await searchHouses(payload)
+      
       let resultsArr = []
       if (Array.isArray(data)) resultsArr = data
       else if (Array.isArray(data.results)) resultsArr = data.results
       else if (Array.isArray(data.data)) resultsArr = data.data
       setResults(resultsArr)
     } catch (err) {
+      console.error("Search Error:", err)
       setError(err?.message || 'Search failed')
     } finally {
       setLoading(false)
