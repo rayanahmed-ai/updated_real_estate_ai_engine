@@ -70,7 +70,10 @@ export default function ResultsPanel({ results, loading, error }) {
                     </div>
                     <div className="result-content">
                       {index === 0 && <span className="result-badge">Best Match</span>}
-                      <div className="result-price">${price.toLocaleString()}<span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" }}>/month</span></div>
+                      <div className="result-price">
+                        {house.price_display || `₹${house.price?.toLocaleString()}`}
+                        <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontFamily: "'DM Sans', sans-serif" }}>/month</span>
+                      </div>
                       
                       <div className="result-details">
                         <div className="detail-item">
