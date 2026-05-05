@@ -1,0 +1,41 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: real-estate-backend
+    env: python
+    rootDir: Smart-HousePrice-Prediction-System-main/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run.py
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SCRAPINGBEE_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_KEY
+        sync: false
+      - key: RENTCAST_API_KEY
+        sync: false
+      - key: ZILLOW_API_KEY
+        sync: false
+      - key: MAPILLARY_TOKEN
+        sync: false
+
+  # Frontend Static Site
+  - type: web
+    name: real-estate-frontend
+    env: static
+    rootDir: Smart-HousePrice-Prediction-System-main/frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          name: real-estate-backend
+          type: web
+          property: host
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+      - key: VITE_GOOGLE_MAPS_KEY
+        sync: false
